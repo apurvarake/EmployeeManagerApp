@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+<meta charset="UTF-8">
+<title>Manager - Login</title>
+
+<style>
+div {
+	margin-top: 15%;
+	margin-left: 32%;
+	border: 2px solid #FCD3F6;
+	border-radius: 5px;
+	height: 200px;
+	width: 30%;
+	background-color: #FCD3F6;
+}
+</style>
+
+</head>
+
+<body>
+	<div>
+		<center>
+			<h2>Login</h2>
+		</center>
+
+		<form id="test-form">
+			<center>
+				<table id='json-table'>
+					<tbody>
+						<tr>
+							<th id="userName">User Name</th>
+							<td><input id="email" type="text" placeholder="abc@xyz.com"
+								required pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,3}$" /></td>
+						</tr>
+						<tr>
+							<th id="password">Password</th>
+							<td><input id="password" type="password" required /></td>
+						</tr>
+					</tbody>
+				</table>
+				<br> <input id="submit" type="submit" value="Login"
+					style="color: white; background-color: #FE3FE4; border: 2px solid #FE3FE4; padding: 3px">
+				<a href="ManagerSignUp.html"><input type="button"
+					value="Sign Up"
+					style="color: white; background-color: #FE3FE4; border: 2px solid #FE3FE4; padding: 3px" /></a>
+				<br> <br>
+	</div>
+	</center>
+	</form>
+	<br>
+	<br>
+	<script src='./jquery.min.js'></script>
+	<script>
+		function toHome() {
+			window.location = 'home.html';
+		};
+
+		function toError() {
+			window.location = 'loginError.html';
+		};
+
+		function formToJSON(table) {//begin function
+
+			//array to hold the key name
+			var keyName;
+
+			//array to store the keyNames for the objects
+			var keyNames = [];
+
+			//array to store the objects
+			var objectArray = [];
+
+			//get the number of cols
+			var numOfCols = table.rows[0].cells.length;
+
+			//get the number of rows
+			var numOfRows = table.rows.length;
+
+			//add the opening [ array bracket
+			objectArray.push("[");
+
+			//add the keyName to the keyNames array
+			keyNames.push('userName');
+
+			keyName = table.rows[1].cells[0].innerHTML;
+
+			//add the keyName to the keyNames array
+			keyNames.push('password');
+
+			//add the opening { object bracket
+			objectArray.push("{\n");
+
+			//extract the text from the input value in the table cell
+			var inputValue = table.rows[0].cells[1].children[0].value;
+
+			//store the object keyNames and its values
+			objectArray.push("\"" + keyNames[0] + "\":" + "\"" + inputValue
+					+ "\"");
+			objectArray.push(",\n");
+			var inputValue = table.rows[1].cells[1].children[0].value;
+
+			//store the object keyNames and its values
+			objectArray.push("\"" + keyNames[1] + "\":" + "\"" + inputValue
+					+ "\"");
+
+			objectArray.push("\n}");
+
+			//add the closing ] array bracket
+			objectArray.push("]");
+
+			return objectArray.join("");
+
+		}//end function
+
+		$("#test-form").on("submit", function(e) {
+
+			//stop form form submitting
+			e.preventDefault();
+
+			//the table object 
+			var table = $("#json-table")[0];
+
+			var resp1 = formToJSON(table);
+
+			var resp2 = JSON.parse(resp1);
+
+			var submitJson = resp2[0];
+
+			login(JSON.stringify(submitJson));
+
+		});
+
+		//Authenticate login credentials from DB
+		function login(loginValue) {
+			var Url = "http://localhost:1234/EmployeeManager/signin";
+			var xhr = new XMLHttpRequest();
+			xhr.open('POST', Url, true);
+			xhr.setRequestHeader('Content-type', 'application/json;');
+			xhr.send(loginValue);
+			xhr.onreadystatechange = processRequest;
+			function processRequest(e) {
+				if (xhr.readyState == 4 && xhr.status == 200) {
+					var response = JSON.parse(xhr.responseText);
+					var code = response.code;
+					if (JSON.stringify(code) === '0') {
+						toHome();
+					} else {
+						toError();
+					}
+				}
+			}
+		};
+	</script>
+</body>
+</html>

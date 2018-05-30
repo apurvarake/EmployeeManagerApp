@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+<meta charset="UTF-8">
+<title>Manager - SignUp</title>
+<style>
+div {
+	margin-top: 15%;
+	margin-left: 25%;
+	border: 2px solid #FCD3F6;
+	border-radius: 5px;
+	height: 30%;
+	width: 50%;
+	background-color: #FCD3F6;
+}
+</style>
+
+</head>
+<body>
+
+	<form id="test-form">
+		<div class="scrollit">
+			<center>
+				<h2>Manager - SignUp</h2>
+			</center>
+			<center>
+				<table id='json-table'>
+					<tbody>
+						<tr>
+							<th id="emailUserName">Email
+								&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
+							<td><input id="emailUserNameValue" type="text"
+								placeholder="abc@xyz.com" required
+								pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,3}$"></td>
+						</tr>
+						<tr>
+							<th id="firstName">First Name</th>
+							<td><input id="firstNameValue" type="text" required>
+							</td>
+						</tr>
+						<tr>
+							<th id="lastName">Last Name</th>
+							<td><input id="lastNameValue" type="text" required>
+							</td>
+						</tr>
+						<tr>
+							<th id="password">Password&nbsp;&nbsp;</th>
+							<td><input id="passwordValue" type="text" required>
+							</td>
+						</tr>
+						<tr>
+							<th id="address">Address&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
+							<td><input id="addressValue" type="text" required></td>
+						</tr>
+						<tr>
+							<th id="dob">DOB&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
+							<td><input id="dobValue" type="text"
+								placeholder="YYYY-MM-DD" required
+								pattern="\d{4}-(0?[1-9]|1[012])-(0?[1-9]|[12][0-9]|3[01])">
+							</td>
+						</tr>
+						<tr>
+							<th id="company">Company&nbsp;&nbsp;</th>
+							<td><input id="companyValue" type="text" required></td>
+						</tr>
+					</tbody>
+				</table>
+				<br> <input id="submit" type="submit" value="Submit"
+					style="color: white; background-color: #FE3FE4; border: 2px solid #FE3FE4; padding: 3px">
+				<a href="login.html"> <input type="button" value="Back To Login"
+					style="color: white; background-color: #FE3FE4; border: 2px solid #FE3FE4; padding: 3px" />
+				</a> <br> <br>
+			</center>
+	</form>
+	</div>
+	<br>
+	<br>
+
+	<script src='./jquery.min.js'></script>
+
+	<script>
+		var employee = '';
+
+		function backToLogin() {
+			window.location = 'login.html';
+		};
+
+		function toError() {
+			window.location = 'signUpError.html';
+		};
+
+		function formToJSON(table) {//begin function
+
+			//array to hold the key name
+			var keyName;
+
+			//array to store the keyNames for the objects
+			var keyNames = [];
+
+			//array to store the objects
+			var objectArray = [];
+
+			//get the number of cols
+			var numOfCols = table.rows[0].cells.length;
+
+			//get the number of rows
+			var numOfRows = table.rows.length;
+
+			//add the opening [ array bracket
+			objectArray.push("[");
+
+			//add the keyName to the keyNames array
+			keyNames.push('email');
+			keyNames.push('firstName');
+			keyNames.push('lastName');
+			keyNames.push('password');
+			keyNames.push('address');
+			keyNames.push('dob');
+			keyNames.push('company');
+
+			objectArray.push("{\n");
+
+			//loop through rows
+			for (var i = 0; i < numOfRows; i++) {//begin outer for loop    
+
+				for (var j = 1; j < numOfCols; j++) {//begin inner for loop   
+
+					//extract the text from the input value in the table cell
+					var inputValue = table.rows[i].cells[j].children[0].value;
+
+					//store the object keyNames and its values
+					objectArray.push("\"" + keyNames[i] + "\":" + "\""
+							+ inputValue + "\"");
+
+					//if j less than the number of columns - 1(<-- accounting for 0 based arrays)
+					if (j < (numOfCols - 1)) {//begin if then
+
+						//add the , seperator
+						objectArray.push(",\n");
+
+					}//end if then    
+
+				}//end inner for loop
+
+				//if i less than the number of rows - 1(<-- accounting for 0 based arrays)
+				if (i < (numOfRows - 1)) {//begin if then
+
+					//add the closing } object bracket followed by a , separator
+					objectArray.push(",\n");
+
+				} else {
+
+					//add the closing } object bracket
+					objectArray.push("\n}");
+
+				}//end if then else
+
+			}//end outer for loop
+
+			//add the closing ] array bracket
+			objectArray.push("]");
+
+			return objectArray.join("");
+
+		}//end function
+
+		$("#test-form").on("submit", function(e) {
+
+			//stop form form submitting
+			e.preventDefault();
+
+			//the table object 
+			var table = $("#json-table")[0];
+
+			var resp1 = formToJSON(table);
+
+			var resp2 = JSON.parse(resp1);
+
+			var submitJson = resp2[0];
+
+			save(JSON.stringify(submitJson));
+
+		});
+
+		//Save Manager details in DB
+		function save(saveValue) {
+			var Url = "http://localhost:1234/EmployeeManager/signup";
+			var xhr = new XMLHttpRequest();
+			xhr.open('POST', Url, true);
+			xhr.setRequestHeader('Content-type', 'application/json;');
+			xhr.send(saveValue);
+			xhr.onreadystatechange = processRequest;
+			function processRequest(e) {
+				if (xhr.readyState == 4 && xhr.status == 200) {
+					var response = JSON.parse(xhr.responseText);
+					var code = response.code;
+					if (JSON.stringify(code) === '0') {
+						alert("Signed-Up successfully")
+						backToLogin();
+					} else {
+						toError();
+					}
+				}
+			}
+		};
+	</script>
+
+</body>
+
+</html>

@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html>
+<head>
+<!-- <meta http-equiv="refresh" content="0" /> -->
+<META HTTP-EQUIV="Pragma" CONTENT="no-cache">
+<META HTTP-EQUIV="Expires" CONTENT="-1">
+<title>Manager - Home Page</title>
+<style>
+.scrollit {
+	overflow: scroll;
+	height: 100px;
+}
+
+div {
+	margin-top: 0%;
+	margin-left: 20%;
+	border: 1px solid #FCD3F6;
+	border-radius: 5px;
+	padding: 0px 0px 0px 40px;
+	height: 32%;
+	width: 62%;
+	background-color: #FCD3F6;
+}
+
+h5 {
+	text-align: right;
+}
+
+table, th, td {
+	text-align: center;
+	margin: 10px 0;
+	border: solid 1px #333;
+	padding: 4px;
+	font: 15px Verdana;
+}
+
+th {
+	font-weight: bold;
+}
+</style>
+</head>
+<body onload="CreateTableFromJSON()">
+	<a href="addEmployee.html"> <input type="button"
+		value="Add Employee"
+		style="margin-top: 1%; margin-left: 74%; margin-bottom: 0%; color: white; background-color: #FE3FE4; border: 2px solid #FE3FE4; padding: 3px" /></a>
+	<a href="login.html"><input type="button" value="Logout"
+		style="margin-top: 10%; margin-left: 0%; margin-bottom: 0%; color: white; background-color: #FE3FE4; border: 2px solid #FE3FE4; padding: 3px" /></a>
+	<div>
+		<center>
+			<h3>List of All Employee</h3>
+		</center>
+	</div>
+	<div id="showData"></div>
+</body>
+
+<script>
+	//Delete employee from DB
+	function deleteButton(id) {
+		localStorage.setItem('isRefreshed', false);
+		alert("Are you sure, you want to delete this record ?")
+		var Url = "http://localhost:1234/EmployeeManager/employee/" + id;
+		var xhr = new XMLHttpRequest();
+		xhr.open('DELETE', Url, true);
+		xhr.send();
+		xhr.onreadystatechange = processRequest;
+		function processRequest(e) {
+			if (xhr.readyState == 4 && xhr.status == 200) {
+			}
+			;
+		}
+		window.location.reload();
+		CreateTableFromJSON();
+	};
+
+	function goToIndex() {
+		window.location = 'addEmployee.html';
+	};
+
+	function updateButton(id) {
+		localStorage.setItem('id', id);
+		goToIndex();
+	};
+
+	function CreateTableFromJSON() {
+		var refreshFlag = localStorage.getItem("isRefreshed");
+		if (refreshFlag === "false") {
+			window.location.reload();
+			localStorage.setItem('isRefreshed', true);
+		}
+
+		var myEmployees = '';
+		var Url = "http://localhost:1234/EmployeeManager/employees";
+		var xhr = new XMLHttpRequest();
+		xhr.open('GET', Url, true);
+		xhr.send();
+		xhr.onreadystatechange = processRequest;
+		function processRequest(e) {
+			if (xhr.readyState == 4 && xhr.status == 200) {
+				myEmployees = JSON.parse(xhr.responseText);
+
+				// EXTRACT VALUE FOR HTML HEADER. 
+				var head = [];
+
+				for (var i = 0; i <= myEmployees.length; i++) {
+					for ( var key in myEmployees[i]) {
+						if (head.indexOf(key) === -1) {
+							head.push(key);
+						}
+					}
+				}
+
+				var col = [];
+				col.push('Emp Id');
+				col.push('First Name');
+				col.push('Last Name');
+				col.push('Address');
+				col.push('Date Of Birth');
+				col.push('Mobile');
+				col.push('City');
+
+				// CREATE DYNAMIC TABLE.
+				var table = document.createElement("table");
+
+				// CREATE HTML TABLE HEADER ROW USING THE EXTRACTED HEADERS ABOVE.
+				var tr = table.insertRow(-1); // TABLE ROW.
+
+				for (var i = 0; i < col.length + 2; i++) {
+					var th = document.createElement("th"); // TABLE HEADER.
+
+					th.innerHTML = col[i];
+					tr.appendChild(th);
+
+					if (i == col.length) {
+						th.innerHTML = "";
+						tr.appendChild(th);
+					}
+
+					if (i == col.length + 1) {
+						th.innerHTML = "";
+						tr.appendChild(th);
+					}
+				}
+
+				// ADD JSON DATA TO THE TABLE AS ROWS.
+				for (var i = 0; i < myEmployees.length; i++) {
+					var deleteValue = '';
+					tr = table.insertRow(-1);
+					for (var j = 0; j < head.length + 2; j++) {
+						var tabCell = tr.insertCell(-1);
+						tabCell.innerHTML = myEmployees[i][head[j]];
+						deleteValue = myEmployees[i][head[0]];
+						if (j == head.length) {
+							tabCell.innerHTML = '<input type="button" onclick="deleteButton('
+									+ deleteValue
+									+ ')" value="DELETE" style=" color:white; background-color:#FE3FE4; border:2px solid #FE3FE4; padding:3px"/>';
+						}
+
+						if (j == head.length + 1) {
+							tabCell.innerHTML = '<input type="button" onclick="updateButton('
+									+ deleteValue
+									+ ')" value="UPDATE" style=" color:white; background-color:#FE3FE4; border:2px solid #FE3FE4; padding:3px" />';
+						}
+
+					}
+				}
+				// FINALLY ADD THE NEWLY CREATED TABLE WITH JSON DATA TO A CONTAINER.
+				var divContainer = document.getElementById("showData");
+				divContainer.innerHTML = "";
+				divContainer.appendChild(table);
+			}
+		}
+
+		// EXTRACT VALUE FOR HTML HEADER. 
+		var col = [];
+		for (var i = 0; i < myEmployees.length; i++) {
+			for ( var key in myEmployees[i]) {
+				if (col.indexOf(key) === -1) {
+					col.push(key);
+				}
+			}
+		}
+
+		// CREATE DYNAMIC TABLE.
+		var table = document.createElement("table");
+
+		// CREATE HTML TABLE HEADER ROW USING THE EXTRACTED HEADERS ABOVE.
+		var tr = table.insertRow(-1); // TABLE ROW.
+
+		for (var i = 0; i < col.length; i++) {
+			var th = document.createElement("th"); // TABLE HEADER.
+			th.innerHTML = col[i];
+			tr.appendChild(th);
+		}
+
+		// ADD JSON DATA TO THE TABLE AS ROWS.
+		for (var i = 0; i < myEmployees.length; i++) {
+
+			tr = table.insertRow(-1);
+
+			for (var j = 0; j < col.length; j++) {
+				var tabCell = tr.insertCell(-1);
+				tabCell.innerHTML = myEmployees[i][col[j]];
+			}
+		}
+
+		// FINALLY ADD THE NEWLY CREATED TABLE WITH JSON DATA TO A CONTAINER.
+		var divContainer = document.getElementById("showData");
+		divContainer.innerHTML = "";
+		divContainer.appendChild(table);
+	}
+</script>
+</html>
